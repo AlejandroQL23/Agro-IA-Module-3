@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 class RecomendadorClimatico:
     def __init__(self, archivo_entrada, archivo_salida):
@@ -43,17 +44,17 @@ class RecomendadorClimatico:
         if row["lluvia_mm"] < 10 and row["temp_max"] > 30:
             return "riego"
         elif row["ph_suelo"] < 5.5:
-            return "fertilización"
+            return "fertilizacion"
         elif row["humedad"] > 90 and row["temp_max"] > 28:
-            return "poda preventiva"
+            return "poda_preventiva"
         else:
             return "ninguna"
 
     def aplicar_recomendaciones(self):
-        self.merged["Recomendación"] = self.merged.apply(self.generar_recomendacion, axis=1)
+        self.merged["Recomendacion"] = self.merged.apply(self.generar_recomendacion, axis=1)
 
     def exportar_resultado(self):
-        columnas_finales = ["YEAR", "MONTH", "lluvia_mm", "temp_max", "temp_min", "humedad", "ph_suelo", "Recomendación"]
+        columnas_finales = ["YEAR", "MONTH", "lluvia_mm", "temp_max", "temp_min", "humedad", "ph_suelo", "Recomendacion"]
         self.merged[columnas_finales].to_csv(self.archivo_salida, index=False)
 
     def procesar(self):
@@ -63,6 +64,42 @@ class RecomendadorClimatico:
         self.exportar_resultado()
         print(f"✅ Archivo generado: {self.archivo_salida}")
 
+
 # Uso de la clase:
 # recomendador = RecomendadorClimatico("df_con_ph.csv", "datos_con_recomendaciones_completo.csv")
 # recomendador.procesar()
+
+class Transformaciones:
+
+    def recomendacion_num(self, df):
+        mapeo = {
+            'riego': 1,
+            'fertilizacion': 2,
+            'poda_preventiva': 3
+        }
+        df['Recomendacion'] = df['Recomendacion'].map(mapeo)
+        return df
+
+
+
+# Cargar datos
+class CargaData:
+    def __init__(self, file_path):
+        self.df = pd.read_csv(file_path).copy()
+
+    def obtener_data(self):
+        return self.df
+
+
+# Agregar ph del suelo por mes
+class AgregarPH:
+    def __init__(self, df):
+        self.df = df
+
+    def generar_ph_mensual(self):
+        # Generar un valor aleatorio de pH entre 3 y 9 por cada mes
+        for month in ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']:
+            self.df.loc[:, month + '_PH_SUELO'] = np.round(np.random.uniform(3, 9, size=len(self.df)), 2)
+        return self.df
+
+
